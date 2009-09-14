@@ -30,11 +30,12 @@
 
   <script type="text/javascript">
   $("#images").EmbedPicasaGallery('oetiker',{
-      matcher: /^Best of/,  // string or regexp to match album title
-      size:    '72'        // thumbnail size (32, 48, 64, 72, 144, 160)
-      msg_loading_list : 'Loading list from PicasaWeb',
+      matcher:            /./,        // string or regexp to match album title
+      size:               '72'        // thumbnail size (32, 48, 64, 72, 144, 160)
+      msg_loading_list :  'Loading list from PicasaWeb',
       msg_loading_album : 'Loading album from PicasaWeb',
-      album_title_tag: '<div/>'
+      msg_back :          'Back',
+      album_title_tag: '<h2/>'
   });
   </script>
 
@@ -58,6 +59,7 @@
             size    : 72,
             msg_loading_list : 'Loading list from PicasaWeb',
             msg_loading_album : 'Loading album from PicasaWeb',
+            msg_back : 'Back',
             album_title_tag: '<h2/>'
         },        
     };
@@ -86,6 +88,7 @@
                 Cache.__original = $this.clone(true);
             }
 
+            $this.after($('<div/>').css('clear','left'));
 
             var meta_opts = localOpts;
             if ($.meta){
@@ -168,16 +171,6 @@
                               height : meta_opts.size + 'px' 
                          })
                     );
-                function linkMapper(el){
-                    return [
-                        el.href,
-                        '<a href="'+el.href+'">'+el.title+'</a>'
-                    ]
-                }
-
-                if ($.fn.slimbox){
-                    a.slimbox({},linkMapper);
-                }
                 $album.append(
                     $("<div/>")
                     .css({
@@ -204,7 +197,7 @@
                             height : meta_opts.size + 'px' 
                        })
                        .append($("<div/>")
-                           .html('<br/>Back')
+                           .html('<br/>'+meta_opts.msg_back)
                            .click(function(){$album.hide();showOverview()})
                            .css({'border-style':'outset',
                                  'border-width':'1px',
@@ -216,6 +209,17 @@
                     );
                 }
                 $.each(data.feed.entry,appendImage);
+
+                function linkMapper(el){
+                    return [
+                        el.href,
+                        '<a href="'+el.href+'">'+el.title+'</a>'
+                    ]
+                }
+
+                if ($.fn.slimbox){
+                    $('a',$album).slimbox({},linkMapper);
+                }
 
                Cache[album] = $album;
            }
