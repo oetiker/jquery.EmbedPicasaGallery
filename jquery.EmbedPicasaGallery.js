@@ -22,20 +22,23 @@
  header or the body of the document, this does not matter.
  
   <script type="text/javascript" src="js/jquery.js"></script>
-  <script type="text/javascript" src="js/slimbox2.js"></script>
+  <link rel="stylesheet" href="css/slimbox2.css" type="text/css" media="screen" />
+  <script type="application/javascript" src="slimbox2.js"></script>
   <script type="text/javascript" src="js/jquery.EmbedPicasaGallery.js"></script>
 
  Once loaded, call the picasaGallery function. This activates the
  code. With the id argument you tell it, where to put the gallery.
 
   <script type="text/javascript">
-  $("#images").EmbedPicasaGallery('oetiker',{
+  jQuery(document).ready(function() {
+   jQuery("#images").EmbedPicasaGallery('oetiker',{
       matcher:            /./,        // string or regexp to match album title
       size:               '72'        // thumbnail size (32, 48, 64, 72, 144, 160)
       msg_loading_list :  'Loading list from PicasaWeb',
       msg_loading_album : 'Loading album from PicasaWeb',
       msg_back :          'Back',
       album_title_tag: '<h2/>'
+   });
   });
   </script>
 
