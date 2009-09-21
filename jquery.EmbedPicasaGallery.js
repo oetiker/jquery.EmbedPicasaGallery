@@ -23,7 +23,7 @@
  
   <script type="text/javascript" src="js/jquery.js"></script>
   <link rel="stylesheet" href="css/slimbox2.css" type="text/css" media="screen" />
-  <script type="application/javascript" src="slimbox2.js"></script>
+  <script type="text/javascript" src="slimbox2.js"></script>
   <script type="text/javascript" src="js/jquery.EmbedPicasaGallery.js"></script>
 
  Once loaded, call the picasaGallery function. This activates the
