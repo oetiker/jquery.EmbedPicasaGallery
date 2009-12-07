@@ -64,7 +64,7 @@
             msg_loading_album : 'Loading album from PicasaWeb',
             msg_back : 'Back',
             album_title_tag: '<h2/>'
-        },        
+        } 
     };
 
     // Private Variables and Functions in the _ object
