@@ -37,6 +37,7 @@
       msg_loading_list :  'Loading list from PicasaWeb',
       msg_loading_album : 'Loading album from PicasaWeb',
       msg_back :          'Back',
+      authkey :           'optional-picasa-authkey',
       album_title_tag: '<h2/>'
    });
   });
@@ -97,6 +98,10 @@
             if ($.meta){
                 meta_opts = $.extend({}, localOpts, $this.data());
             }
+            var authkey = '';
+            if (meta_opts.authkey){
+                authkey = '&authkey=' + meta_opts.authkey;
+            }
  
             $this.text(meta_opts.msg_loading_list);
             var albumCount = 0;
@@ -144,9 +149,9 @@
                
                 Cache.__overview = $this;
             }
-
             $.getJSON('http://picasaweb.google.com/data/feed/api/user/' 
-                + user + '?kind=album&access=public&alt=json-in-script&thumbsize=' + meta_opts.size + 'c&callback=?',
+                + user + '?kind=album&access=visible' + authkey 
+                + '&alt=json-in-script&thumbsize=' + meta_opts.size + 'c&callback=?',
                 renderAlbumList
             );
         };
@@ -226,10 +231,14 @@
 
                Cache[album] = $album;
            }
+           var authkey = '';
+           if (meta_opts.authkey){
+               authkey = '&authkey=' + meta_opts.authkey;
+           }
 
            $.getJSON('http://picasaweb.google.com/data/feed/api/user/' 
                 + user + '/albumid/' 
-                + album + '?kind=photo&access=public&alt=json-in-script&thumbsize='+meta_opts.size+'c&imgmax=800&callback=?',
+                + album + '?kind=photo&access=visible' + authkey + '&alt=json-in-script&thumbsize='+meta_opts.size+'c&imgmax=800&callback=?',
                 renderAlbum
            );
         };
