@@ -38,6 +38,7 @@
       msg_loading_album : 'Loading album from PicasaWeb',
       msg_back :          'Back',
       authkey :           'optional-picasa-authkey',
+      albumid :           'go-directly-to-this-album-ignore-matcher'
       album_title_tag: '<h2/>'
    });
   });
@@ -98,11 +99,6 @@
             if ($.meta){
                 meta_opts = $.extend({}, localOpts, $this.data());
             }
-            var authkey = '';
-            if (meta_opts.authkey){
-                authkey = '&authkey=' + meta_opts.authkey;
-            }
- 
             $this.text(meta_opts.msg_loading_list);
             var albumCount = 0;
             function appendImage(i,item){
@@ -137,7 +133,11 @@
             
             function renderAlbumList(data){
                 $this.empty();
-                $.each(data.feed.entry,appendImage);                
+		if (data.feed && data.feed.entry){
+	            $.each(data.feed.entry,appendImage);
+		} else {
+  		    $this.text('Warning: No picasa albums found for user ' + user);
+		}
                 if (albumCount == 1){
                     $this.children().eq(0).click();
                     return;
@@ -149,11 +149,22 @@
                
                 Cache.__overview = $this;
             }
-            $.getJSON('http://picasaweb.google.com/data/feed/api/user/' 
-                + user + '?kind=album&access=visible' + authkey 
-                + '&alt=json-in-script&thumbsize=' + meta_opts.size + 'c&callback=?',
-                renderAlbumList
-            );
+            var authkey = '';
+
+            if (meta_opts.authkey){
+                authkey = '&authkey=' + meta_opts.authkey;
+            }
+ 
+	   if (meta_opts.albumid) {
+    	       showAlbum($this,meta_opts,meta_opts.albumid,'')
+	   }
+	   else {
+               $.getJSON('http://picasaweb.google.com/data/feed/api/user/' 
+                   + user + '?kind=album&access=visible' + authkey 
+                   + '&alt=json-in-script&thumbsize=' + meta_opts.size + 'c&callback=?',
+                   renderAlbumList
+               );
+	   }
         };
 
         function showAlbum($el,meta_opts,album,title){
