@@ -133,11 +133,11 @@
             
             function renderAlbumList(data){
                 $this.empty();
-		if (data.feed && data.feed.entry){
-	            $.each(data.feed.entry,appendImage);
-		} else {
-  		    $this.text('Warning: No picasa albums found for user ' + user);
-		}
+        		if (data.feed && data.feed.entry){
+    	            $.each(data.feed.entry,appendImage);
+        		} else {
+          		    $this.text('Warning: No picasa albums found for user ' + user);
+		        }
                 if (albumCount == 1){
                     $this.children().eq(0).click();
                     return;
@@ -185,6 +185,7 @@
                    .append(
                         $("<img/>")
                         .attr("src", item.media$group.media$thumbnail[0].url)
+                        .attr("id", 'pThumb_' + item.gphoto$id.$t )
                         .css({'border-width': '0px',
                               width : meta_opts.size + 'px',
                               height : meta_opts.size + 'px' 
