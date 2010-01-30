@@ -31,7 +31,7 @@
 
   <script type="text/javascript">
   jQuery(document).ready(function() {
-   jQuery("#images").EmbedPicasaGallery('oetiker',{
+  jQuery("#images").EmbedPicasaGallery('oetiker',{
       matcher:            /./,        // string or regexp to match album title
       size:               '72'        // thumbnail size (32, 48, 64, 72, 144, 160)
       msg_loading_list :  'Loading list from PicasaWeb',
@@ -40,6 +40,13 @@
       authkey :           'optional-picasa-authkey',
       albumid :           'go-directly-to-this-album-ignore-matcher'
       album_title_tag: '<h2/>'
+      thumb_id_prefix: 'pThumb_',
+      link_mapper: function(el){  // see http://code.google.com/p/slimbox/wiki/jQueryAPI#The_linkMapper_function
+            return [
+                     el.href,
+                     '<a href="'+el.href+'">'+el.title+'</a>'
+                   ]
+            }
    });
   });
   </script>
@@ -65,7 +72,14 @@
             msg_loading_list : 'Loading list from PicasaWeb',
             msg_loading_album : 'Loading album from PicasaWeb',
             msg_back : 'Back',
-            album_title_tag: '<h2/>'
+            album_title_tag: '<h2/>',
+            thumb_id_prefix: 'pThumb_',
+            link_mapper: function(el){
+                    return [
+                        el.href,
+                        '<a href="'+el.href+'">'+el.title+'</a>'
+                    ]
+                }
         } 
     };
 
@@ -185,7 +199,7 @@
                    .append(
                         $("<img/>")
                         .attr("src", item.media$group.media$thumbnail[0].url)
-                        .attr("id", 'pThumb_' + item.gphoto$id.$t )
+                        .attr("id", meta_opts.thumb_id_prefix + item.gphoto$id.$t )
                         .css({'border-width': '0px',
                               width : meta_opts.size + 'px',
                               height : meta_opts.size + 'px' 
@@ -230,15 +244,9 @@
                 }
                 $.each(data.feed.entry,appendImage);
 
-                function linkMapper(el){
-                    return [
-                        el.href,
-                        '<a href="'+el.href+'">'+el.title+'</a>'
-                    ]
-                }
 
                 if ($.fn.slimbox){
-                    $('a',$album).slimbox({},linkMapper);
+                    $('a',$album).slimbox({},meta_opts.link_mapper);
                 }
 
                Cache[album] = $album;
