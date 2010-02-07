@@ -32,8 +32,8 @@
   <script type="text/javascript">
   jQuery(document).ready(function() {
   jQuery("#images").EmbedPicasaGallery('oetiker',{
-      matcher:            /./,        // string or regexp to match album title
-      size:               '72'        // thumbnail size (32, 48, 64, 72, 144, 160)
+      matcher:            /./,         // string or regexp to match album title
+      size:               '72',        // thumbnail size (32, 48, 64, 72, 144, 160)
       msg_loading_list :  'Loading list from PicasaWeb',
       msg_loading_album : 'Loading album from PicasaWeb',
       msg_back :          'Back',
@@ -41,6 +41,7 @@
       albumid :           'go-directly-to-this-album-ignore-matcher'
       album_title_tag: '<h2/>'
       thumb_id_prefix: 'pThumb_',
+      thumb_callback: <function_pointer_to be calles on each thumbnail div after it has been added to the page. this in the funtion is the div element>,
       link_mapper: function(el){  // see http://code.google.com/p/slimbox/wiki/jQueryAPI#The_linkMapper_function
             return [
                      el.href,
@@ -54,7 +55,7 @@
  Finally inside the document, add a div tag with the id set to the name
  chosen above.
  
- <span id="images"></div>
+ <div id="images"></div>
 
  To have the elements show up horyzontally stacked and not vertiaclly use css 
 
@@ -74,6 +75,7 @@
             msg_back : 'Back',
             album_title_tag: '<h2/>',
             thumb_id_prefix: 'pThumb_',
+            thumb_callback: null,
             link_mapper: function(el){
                     return [
                         el.href,
@@ -199,7 +201,6 @@
                    .append(
                         $("<img/>")
                         .attr("src", item.media$group.media$thumbnail[0].url)
-                        .attr("id", meta_opts.thumb_id_prefix + item.gphoto$id.$t )
                         .css({'border-width': '0px',
                               width : meta_opts.size + 'px',
                               height : meta_opts.size + 'px' 
@@ -207,6 +208,7 @@
                     );
                 $album.append(
                     $("<div/>")
+                    .attr("id", meta_opts.thumb_id_prefix + item.gphoto$id.$t )
                     .css({
                        float: 'left',
                        'margin-right': '10px',
@@ -248,8 +250,10 @@
                 if ($.fn.slimbox){
                     $('a',$album).slimbox({},meta_opts.link_mapper);
                 }
-
-               Cache[album] = $album;
+                if (meta_opts.thumb_callback){
+                    $('div.pic-thumb',$album).each(meta_opts.thumb_callback);
+                }
+                Cache[album] = $album;
            }
            var authkey = '';
            if (meta_opts.authkey){
