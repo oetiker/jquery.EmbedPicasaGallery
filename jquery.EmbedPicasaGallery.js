@@ -41,7 +41,7 @@
       albumid :           'go-directly-to-this-album-ignore-matcher'
       album_title_tag: '<h2/>'
       thumb_id_prefix: 'pThumb_',
-      thumb_callback: <function_pointer_to be calles on each thumbnail div after it has been added to the page. this in the funtion is the div element>,
+      thumb_callback: <function_pointer_to be calles on each thumbnail link (a) after it has been added to the page. this in the funtion is the a element>,
       link_mapper: function(el){  // see http://code.google.com/p/slimbox/wiki/jQueryAPI#The_linkMapper_function
             return [
                      el.href,
@@ -251,7 +251,7 @@
                     $('a',$album).slimbox({},meta_opts.link_mapper);
                 }
                 if (meta_opts.thumb_callback){
-                    $('div.pic-thumb',$album).each(meta_opts.thumb_callback);
+                    $('a',$album).each(meta_opts.thumb_callback);
                 }
                 Cache[album] = $album;
            }
