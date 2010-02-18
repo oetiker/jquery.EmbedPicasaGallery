@@ -1,11 +1,8 @@
 /**************************************************************************
  * Name:   EmbedPicasaGallery
  * Author: Tobias Oetiker <tobi@oetiker.ch>
- * Date:   2009/09/10
  * Demo:   http://tobi.oetiker.ch/photo/
-
  * $Id$
- **************************************************************************/
 /**************************************************************************
  Description:
  
@@ -34,14 +31,16 @@
   jQuery("#images").EmbedPicasaGallery('oetiker',{
       matcher:            /./,         // string or regexp to match album title
       size:               '72',        // thumbnail size (32, 48, 64, 72, 144, 160)
-      msg_loading_list :  'Loading list from PicasaWeb',
+      msg_loading_list :  'Loading album list from PicasaWeb',
       msg_loading_album : 'Loading album from PicasaWeb',
       msg_back :          'Back',
       authkey :           'optional-picasa-authkey',
       albumid :           'go-directly-to-this-album-ignore-matcher'
-      album_title_tag: '<h2/>'
-      thumb_id_prefix: 'pThumb_',
-      thumb_callback: <function_pointer_to be calles on each thumbnail link (a) after it has been added to the page. this in the funtion is the a element>,
+      album_title_tag:    '<h2/>'
+      thumb_id_prefix:    'pThumb_',
+      loading_amimation: 'css/loading.gif',
+      thumb_finalizer:    function(){var $a = jQuery(this); ... use this to do something to the anchor AFTER slimbox got there },
+      thumb_tuner:        function($div,entry,i){ ... $div is the div of the thumbnail, entry is the picasa image info ...}
       link_mapper: function(el){  // see http://code.google.com/p/slimbox/wiki/jQueryAPI#The_linkMapper_function
             return [
                      el.href,
@@ -70,12 +69,14 @@
         defaultOptions: {
             matcher : RegExp('.+'),
             size    : 72,
-            msg_loading_list : 'Loading list from PicasaWeb',
+            msg_loading_list : 'Loading album list from PicasaWeb',
             msg_loading_album : 'Loading album from PicasaWeb',
             msg_back : 'Back',
             album_title_tag: '<h2/>',
             thumb_id_prefix: 'pThumb_',
-            thumb_callback: null,
+            thumb_tuner: null,
+            thumb_finalizer: null,
+            loading_amimation: 'css/loading.gif',
             link_mapper: function(el){
                     return [
                         el.href,
@@ -101,40 +102,49 @@
 
         function showOverview() {
             if ( Cache.__overview ){
-                Cache.__overview.show();
-                return;
+                 Cache.__overview.fadeIn(0.3);
+                 return;
             }
             var $this = $(this);
-            if ( ! Cache.__original ){
-                Cache.__original = $this.clone(true);
-            }
-
-            $this.after($('<div/>').css('clear','left'));
-
+            $this.empty();
             var meta_opts = localOpts;
             if ($.meta){
                 meta_opts = $.extend({}, localOpts, $this.data());
             }
-            $this.text(meta_opts.msg_loading_list);
             var albumCount = 0;
+            var $album_list = $('<div/>')
+                .attr('class','album-list')
+                .append($('<div/>').text(meta_opts.msg_loading_list));
+
+            $this.append($album_list);
+
             function appendImage(i,item){
                 var title = item.media$group.media$title.$t;
                 if (title.match(meta_opts.matcher)){
                     albumCount++;
-                    $this.append( $("<div/>")
+                    var $div = $('<div/>');
+                    $div.hide();
+                    var $img = $(new Image());
+                    $img.load(function(){
+                        $div.show();
+                    });
+                    $img.attr('src',item.media$group.media$thumbnail[0].url);
+                    $album_list.append( $div
+                        .attr('class','album-cover')
                         .css({
                             float: 'left',
-                            'margin-right': '10px',
-                            'margin-bottom': '10px'
+                            marginRight: '10px',
+                            marginBottom: '10px'
                         })
                         .click(function () {
+                           $album_list.hide();
                            showAlbum($this,meta_opts,item.gphoto$id.$t,title);
                         })
                         .hover(
                             function () { $(this).css("cursor","pointer")},
                             function () { $(this).css("cursor","default")}
                         )
-                        .append( $("<img/>").attr("src", item.media$group.media$thumbnail[0].url) )
+                        .append( $img )
                         .append(
                             $('<div/>')
                             .css({
@@ -148,78 +158,91 @@
             }
             
             function renderAlbumList(data){
-                $this.empty();
+                $album_list.empty();
         		if (data.feed && data.feed.entry){
     	            $.each(data.feed.entry,appendImage);
         		} else {
           		    $this.text('Warning: No picasa albums found for user ' + user);
 		        }
+                Cache.__overview = $album_list;
+                var $albums = $album_list.children();
+
+                $album_list.append($('<br/>').css('clear','left'));
+
                 if (albumCount == 1){
-                    $this.children().eq(0).click();
+                    $albums.eq(0).click();
                     return;
                 }
-                var maxHeight = 0;
-                $this.children()    
-                    .each(function(){var h = $('div',$(this)).outerHeight(); if (h > maxHeight){maxHeight = h}})
-                    .each(function(){$(this).height(maxHeight+meta_opts.size+5)});
-               
-                Cache.__overview = $this;
             }
+
             var authkey = '';
 
             if (meta_opts.authkey){
                 authkey = '&authkey=' + meta_opts.authkey;
             }
  
-	   if (meta_opts.albumid) {
-    	       showAlbum($this,meta_opts,meta_opts.albumid,'')
-	   }
-	   else {
+    	   if (meta_opts.albumid) {
+       	       showAlbum($this,meta_opts,meta_opts.albumid,'')
+    	   }
+	       else {
                $.getJSON('http://picasaweb.google.com/data/feed/api/user/' 
                    + user + '?kind=album&access=visible' + authkey 
                    + '&alt=json-in-script&thumbsize=' + meta_opts.size + 'c&callback=?',
                    renderAlbumList
-               );
-	   }
+              );
+	       }
         };
 
-        function showAlbum($el,meta_opts,album,title){
-            $el.hide();
+        function showAlbum($this,meta_opts,album,title){            
             if ( Cache[album] ){
-               Cache[album].show();
+               Cache[album].fadeIn(0.3);
                return;
             };
-            var $album = Cache.__original.clone(true);
-            $el.after($album);
-            $album.text(meta_opts.msg_loading_album);
+            var $album = $('<div/>').attr('class','album');
+
+            $this.append($album);            
+
+            $album.append($('<div/>').text(meta_opts.msg_loading_album));
 
             function appendImage(i,item){
                var title = item.media$group.media$title.$t;
-               var a = $("<a/>")
+               var $img = $(new Image());
+               var $div = $('<div/>')
+                   .css({
+                        background: 'url(' + meta_opts.loading_animation + ') no-repeat center center',
+                        width: meta_opts.size+'px',
+                        height: meta_opts.size+'px',
+                    });
+               $img.load(function(){                   
+                    if (meta_opts.thumb_tuner){
+                        meta_opts.thumb_tuner($div,item);
+                    }
+                    $img.fadeIn(0.2);
+               });
+               $img.css('border-width','0px');
+               $img.hide();
+               var $a = $("<a/>")
                    .attr("href",item.content.src)
                    .attr("title",title)
-                   .append(
-                        $("<img/>")
-                        .attr("src", item.media$group.media$thumbnail[0].url)
-                        .css({'border-width': '0px',
-                              width : meta_opts.size + 'px',
-                              height : meta_opts.size + 'px' 
-                         })
-                    );
-                $album.append(
-                    $("<div/>")
-                    .attr("id", meta_opts.thumb_id_prefix + item.gphoto$id.$t )
-                    .css({
-                       float: 'left',
-                       'margin-right': '10px',
-                       'margin-bottom': '10px'
+                   .append($img)
+
+               $album.append(
+                   $div
+                   .attr("id", meta_opts.thumb_id_prefix + item.gphoto$id.$t )
+                   .css({
+                        float: 'left',
+                        marginRight: '10px',
+                        marginBottom: '10px'
                     })
-                    .append(a)
-                );
+                    .append($a)
+               );
+               $img.attr("src", item.media$group.media$thumbnail[0].url);
+                
             }
 
             function renderAlbum(data){
                 $album.empty();
+
                 $album.append($(meta_opts.album_title_tag).text(title))
 
                 if (Cache.__overview){
@@ -245,6 +268,8 @@
                     );
                 }
                 $.each(data.feed.entry,appendImage);
+
+                $album.append($('<br/>').css('clear','left'));
 
 
                 if ($.fn.slimbox){
