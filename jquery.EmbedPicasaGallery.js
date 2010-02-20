@@ -3,7 +3,7 @@
  * Author: Tobias Oetiker <tobi@oetiker.ch>
  * Demo:   http://tobi.oetiker.ch/photo/
  * $Id$
-/**************************************************************************
+ **************************************************************************
  Description:
  
  This little script asks picasa web for a list of albums and for a list
@@ -32,7 +32,6 @@
       matcher:            /./,         // string or regexp to match album title
       size:               '72',        // thumbnail size (32, 48, 64, 72, 144, 160)
       msg_loading_list :  'Loading album list from PicasaWeb',
-      msg_loading_album : 'Loading album from PicasaWeb',
       msg_back :          'Back',
       authkey :           'optional-picasa-authkey',
       albumid :           'go-directly-to-this-album-ignore-matcher'
@@ -62,7 +61,11 @@
 
 (function($) {
     // setup a namespace for us
-    var nsp = 'EmbedPicasaGallery';
+    var nsp = 'EmbedPicasaGallery', authkey;
+
+    // Private Variables and Functions in the _ object
+    // note that this will refer to _ unless you
+    // call using the call or apply methods
 
     // Public Variables and Methods
     $[nsp] = {
@@ -70,13 +73,12 @@
             matcher : RegExp('.+'),
             size    : 72,
             msg_loading_list : 'Loading album list from PicasaWeb',
-            msg_loading_album : 'Loading album from PicasaWeb',
             msg_back : 'Back',
             album_title_tag: '<h2/>',
             thumb_id_prefix: 'pThumb_',
             thumb_tuner: null,
             thumb_finalizer: null,
-            loading_amimation: 'css/loading.gif',
+            loading_amimation: null,
             link_mapper: function(el){
                     return [
                         el.href,
@@ -85,60 +87,63 @@
                 }
         } 
     };
-
-    // Private Variables and Functions in the _ object
-    // note that this will refer to _ unless you
-    // call using the call or apply methods
-    var _ = {
-    };
-
     $.fn[nsp] = function(user,opts) {
-        var localOpts = $.extend( 
+        var localOpts,
+            Cache = {};
+
+        localOpts = $.extend( 
             {}, // start with an empty map
             $[nsp].defaultOptions, // add defaults
             opts // add options
-        );
-        var Cache = {};
+        ),
 
         function showOverview() {
+            var $this,
+                meta_opts,
+                albumCount,
+                $album_list,
+                authkey = '';
+
             if ( Cache.__overview ){
-                 Cache.__overview.fadeIn(0.3);
+                 Cache.__overview.show();
                  return;
             }
-            var $this = $(this);
+            $this = $(this);
             $this.empty();
-            var meta_opts = localOpts;
+            $this.append($('<br/>').css('clear','left'));
+            meta_opts = localOpts;
             if ($.meta){
                 meta_opts = $.extend({}, localOpts, $this.data());
             }
-            var albumCount = 0;
-            var $album_list = $('<div/>')
-                .attr('class','album-list')
+            albumCount = 0;
+            $album_list = $('<div/>')
+                .addClass('album-list')
                 .append($('<div/>').text(meta_opts.msg_loading_list));
 
-            $this.append($album_list);
+            $this.prepend($album_list);
 
             function appendImage(i,item){
-                var title = item.media$group.media$title.$t;
+                var title,$div,$img;
+                title = item.media$group.media$title.$t;
                 if (title.match(meta_opts.matcher)){
                     albumCount++;
-                    var $div = $('<div/>');
-                    $div.hide();
-                    var $img = $(new Image());
-                    $img.load(function(){
-                        $div.show();
-                    });
-                    $img.attr('src',item.media$group.media$thumbnail[0].url);
+                    $div = $('<div/>').hide();
+                    $img = $(new Image())
+                        .load(function(){
+                            $div.show();
+                        })
+                        .attr('src',item.media$group.media$thumbnail[0].url)
+                        .attr('title',title);
                     $album_list.append( $div
-                        .attr('class','album-cover')
+                        .addClass('album-cover')
                         .css({
-                            float: 'left',
+                            'float': 'left',
                             marginRight: '10px',
                             marginBottom: '10px'
                         })
                         .click(function () {
                            $album_list.hide();
-                           showAlbum($this,meta_opts,item.gphoto$id.$t,title);
+                           showAlbum($this,meta_opts,item.gphoto$id.$t,title,item.gphoto$numphotos.$t);
                         })
                         .hover(
                             function () { $(this).css("cursor","pointer")},
@@ -158,6 +163,7 @@
             }
             
             function renderAlbumList(data){
+                var $albums;
                 $album_list.empty();
         		if (data.feed && data.feed.entry){
     	            $.each(data.feed.entry,appendImage);
@@ -165,9 +171,8 @@
           		    $this.text('Warning: No picasa albums found for user ' + user);
 		        }
                 Cache.__overview = $album_list;
-                var $albums = $album_list.children();
+                $albums = $album_list.children();
 
-                $album_list.append($('<br/>').css('clear','left'));
 
                 if (albumCount == 1){
                     $albums.eq(0).click();
@@ -175,7 +180,6 @@
                 }
             }
 
-            var authkey = '';
 
             if (meta_opts.authkey){
                 authkey = '&authkey=' + meta_opts.authkey;
@@ -193,84 +197,95 @@
 	       }
         };
 
-        function showAlbum($this,meta_opts,album,title){            
+        function showAlbum($this,meta_opts,album,title,photoCount){                        
             if ( Cache[album] ){
-               Cache[album].fadeIn(0.3);
+               Cache[album].show();
                return;
             };
-            var $album = $('<div/>').attr('class','album');
+            var i,$album,albumPics=[],$albumDiv;
 
-            $this.append($album);            
+            $album = $('<div/>').addClass('album');
 
-            $album.append($('<div/>').text(meta_opts.msg_loading_album));
+            if (title){
+                $album.append($(meta_opts.album_title_tag).text(title))
+            }
 
-            function appendImage(i,item){
-               var title = item.media$group.media$title.$t;
-               var $img = $(new Image());
-               var $div = $('<div/>')
+            function makeDiv(){
+               $div = $('<div/>')
                    .css({
-                        background: 'url(' + meta_opts.loading_animation + ') no-repeat center center',
                         width: meta_opts.size+'px',
                         height: meta_opts.size+'px',
+                        'float': 'left',
+                        marginRight: '10px',
+                        marginBottom: '10px'
                     });
+               if (meta_opts.loading_animation){
+                   $div.css('background','url(' + meta_opts.loading_animation + ') no-repeat center center');            
+               }
+               return $div;
+            }
+
+            if (Cache.__overview){
+                $album.append($("<div/>")
+                    .attr("class","pic-thumb")
+                    .css({'border-width': '0px',
+                         'float' : 'left',
+                         marginRight: '10px',
+                         marginBottom: '10px',
+                         width : meta_opts.size + 'px',
+                         height : meta_opts.size + 'px' 
+                     })
+                    .append($("<div/>")
+                        .html('<br/>'+meta_opts.msg_back)
+                        .click(function(){$album.hide();showOverview()})
+                        .css({'border-style':'outset',
+                              'border-width':'1px',
+                              'text-align'  :'center',
+                              'width'       : (meta_opts.size - 2) + 'px',
+                              'height'      : (meta_opts.size - 2) + 'px'
+                        })
+                    )
+                 );
+             }
+            
+            if (photoCount){
+                for (i=0;i<photoCount;i++) {
+                    $albumDiv = makeDiv();
+                    $album.append($albumDiv);
+                    albumPics.push($albumDiv);
+                }
+            }
+
+            function appendImage(i,item){
+               var title, $img, $div, $a;
+               title = item.media$group.media$title.$t;
+               $img = $(new Image());
                $img.load(function(){                   
                     if (meta_opts.thumb_tuner){
                         meta_opts.thumb_tuner($div,item);
                     }
                     $img.fadeIn(0.2);
-               });
-               $img.css('border-width','0px');
-               $img.hide();
-               var $a = $("<a/>")
+               })
+               .css('border-width','0px')
+               .hide();
+               $a = $("<a/>")
                    .attr("href",item.content.src)
                    .attr("title",title)
-                   .append($img)
+                   .append($img);
 
-               $album.append(
-                   $div
+               if (($div = albumPics[i]) == undefined){
+                    $div = makeDiv();  
+                    $album.append($div);
+               }
+
+               $div
                    .attr("id", meta_opts.thumb_id_prefix + item.gphoto$id.$t )
-                   .css({
-                        float: 'left',
-                        marginRight: '10px',
-                        marginBottom: '10px'
-                    })
-                    .append($a)
-               );
-               $img.attr("src", item.media$group.media$thumbnail[0].url);
-                
+                   .append($a)
+               $img.attr("src", item.media$group.media$thumbnail[0].url);                
             }
 
             function renderAlbum(data){
-                $album.empty();
-
-                $album.append($(meta_opts.album_title_tag).text(title))
-
-                if (Cache.__overview){
-                    $album.append($("<div/>")
-                       .attr("class","pic-thumb")
-                       .css({'border-width': '0px',
-                            float : 'left',
-                           'margin-right': '10px',
-                           'margin-bottom': '10px',
-                            width : meta_opts.size + 'px',
-                            height : meta_opts.size + 'px' 
-                       })
-                       .append($("<div/>")
-                           .html('<br/>'+meta_opts.msg_back)
-                           .click(function(){$album.hide();showOverview()})
-                           .css({'border-style':'outset',
-                                 'border-width':'1px',
-                                 'text-align'  :'center',
-                                 'width'       : (meta_opts.size - 2) + 'px',
-                                 'height'      : (meta_opts.size - 2) + 'px'
-                           })
-                       )
-                    );
-                }
                 $.each(data.feed.entry,appendImage);
-
-                $album.append($('<br/>').css('clear','left'));
-
 
                 if ($.fn.slimbox){
                     $('a',$album).slimbox({},meta_opts.link_mapper);
@@ -280,16 +295,16 @@
                 }
                 Cache[album] = $album;
            }
-           var authkey = '';
+           authkey = '';
            if (meta_opts.authkey){
                authkey = '&authkey=' + meta_opts.authkey;
            }
-
            $.getJSON('http://picasaweb.google.com/data/feed/api/user/' 
                 + user + '/albumid/' 
                 + album + '?kind=photo&access=visible' + authkey + '&alt=json-in-script&thumbsize='+meta_opts.size+'c&imgmax=800&callback=?',
                 renderAlbum
            );
+           $this.prepend($album);
         };
 
         return this.each(showOverview);
