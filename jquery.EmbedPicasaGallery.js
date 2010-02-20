@@ -95,7 +95,7 @@
             {}, // start with an empty map
             $[nsp].defaultOptions, // add defaults
             opts // add options
-        ),
+        );
 
         function showOverview() {
             var $this,
