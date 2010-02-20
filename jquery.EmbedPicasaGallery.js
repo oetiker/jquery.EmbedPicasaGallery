@@ -37,7 +37,7 @@
       albumid :           'go-directly-to-this-album-ignore-matcher'
       album_title_tag:    '<h2/>'
       thumb_id_prefix:    'pThumb_',
-      loading_amimation: 'css/loading.gif',
+      loading_animation: 'css/loading.gif',
       thumb_finalizer:    function(){var $a = jQuery(this); ... use this to do something to the anchor AFTER slimbox got there },
       thumb_tuner:        function($div,entry,i){ ... $div is the div of the thumbnail, entry is the picasa image info ...}
       link_mapper: function(el){  // see http://code.google.com/p/slimbox/wiki/jQueryAPI#The_linkMapper_function
@@ -78,7 +78,7 @@
             thumb_id_prefix: 'pThumb_',
             thumb_tuner: null,
             thumb_finalizer: null,
-            loading_amimation: null,
+            loading_animation: null,
             link_mapper: function(el){
                     return [
                         el.href,
@@ -272,7 +272,7 @@
                     if (meta_opts.thumb_tuner){
                         meta_opts.thumb_tuner($div,item);
                     }
-                    $img.fadeIn(0.2);
+                    $img.show();
                })
                .css('border-width','0px')
                .hide();
