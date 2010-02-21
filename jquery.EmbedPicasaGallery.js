@@ -34,8 +34,8 @@
       msg_loading_list :  'Loading album list from PicasaWeb',
       msg_back :          'Back',
       authkey :           'optional-picasa-authkey',
-      albumid :           'go-directly-to-this-album-ignore-matcher'
-      album_title_tag:    '<h2/>'
+      albumid :           'go-directly-to-this-album-ignore-matcher',
+      album_title_tag:    '<h2/>',
       thumb_id_prefix:    'pThumb_',
       loading_animation: 'css/loading.gif',
       thumb_finalizer:    function(){var $a = jQuery(this); ... use this to do something to the anchor AFTER slimbox got there },
@@ -54,8 +54,6 @@
  chosen above.
  
  <div id="images"></div>
-
- To have the elements show up horyzontally stacked and not vertiaclly use css 
 
 **********************************************************************************/
 
