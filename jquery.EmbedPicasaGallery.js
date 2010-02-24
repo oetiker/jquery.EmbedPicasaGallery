@@ -264,7 +264,7 @@
 
             function appendImage(i,item){
                var title, $img, $div, $a;
-               title = item.media$group.media$title.$t;
+               title = item.media$group.media$description.$t || item.media$group.media$title.$t;  
                $img = $(new Image());
                $img.load(function(){                   
                     if (meta_opts.thumb_tuner){
