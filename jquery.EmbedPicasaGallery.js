@@ -118,7 +118,6 @@
                 .addClass('album-list')
                 .append($('<div/>').text(meta_opts.msg_loading_list));
 
-            $this.prepend($album_list);
 
             function appendImage(i,item){
                 var title,$div,$img;
@@ -195,6 +194,7 @@
        	       showAlbum($this,meta_opts,meta_opts.albumid,'')
     	    }
 	        else {
+                $this.prepend($album_list);
                 $.getJSON('http://picasaweb.google.com/data/feed/api/user/' 
                     + user + '?kind=album&access=visible' + authkey 
                     + '&alt=json-in-script&thumbsize=' + meta_opts.size + 'c&callback=?',
@@ -217,7 +217,7 @@
             }
 
             function makeDiv(){
-               $div = $('<div/>')
+               var $div = $('<div/>')
                    .width(meta_opts.size)
                    .height(meta_opts.size)
                    .css({
