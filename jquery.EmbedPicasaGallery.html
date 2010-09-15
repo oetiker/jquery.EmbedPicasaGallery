@@ -11,12 +11,21 @@ jQuery(document).ready(function() {
     jQuery("#pics").EmbedPicasaGallery('oetiker',{
         loading_animation: 'css/loading.gif'
     })
+
+ $("#pics2").EmbedPicasaGallery('oetiker',{
+  albumid: "5484803453430469713",
+  size: 32, // thumb size (32,48,64,72,144,160))
+  loading_animation: "http://oss.oetiker.ch/jquery/css/loading.gif"
+ });
+
 })
 </script>
 <body>
 <h1>Test page for EmbedPicasGallery</h1>
 
 <div id="pics"></div>
+
+<div id="pics2"></div>
 
 <p>Created by <a href="http://tobi.oetiker.ch">Tobi Oetiker</a>. Go to the <a href="http://plugins.jquery.com/project/EmbedPicasaGallery">homepage</a> for more information.</p>
 </body>
