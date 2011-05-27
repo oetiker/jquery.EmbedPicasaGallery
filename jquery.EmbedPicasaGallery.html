@@ -8,23 +8,31 @@
 <script type="text/javascript" src="jquery.EmbedPicasaGallery.js"></script>
 <script type="text/javascript">
 jQuery(document).ready(function() {
-    jQuery("#pics").EmbedPicasaGallery('oetiker',{
-        loading_animation: 'css/loading.gif'
-    })
+ jQuery("#pics").EmbedPicasaGallery('oetiker',{
+    matcher: /Best/,
+//  auto_open: true,
+//  hide_back: true,
+//  show_more: 5,
+    loading_animation: 'css/loading.gif',
+    album_title_tag:    '<h3/>',
+ })
 
  $("#pics2").EmbedPicasaGallery('oetiker',{
   albumid: "5484803453430469713",
-  size: 32, // thumb size (32,48,64,72,144,160))
-  loading_animation: "http://oss.oetiker.ch/jquery/css/loading.gif"
+  size: 144, // thumb size (32,48,64,72,144,160))
+  loading_animation: "http://oss.oetiker.ch/jquery/css/loading.gif",
+  msg_more: 'show<br/>more',
+  show_more: 5
  });
 
 })
 </script>
 <body>
 <h1>Test page for EmbedPicasGallery</h1>
-
+<h2>Multiple Albums</h2>
 <div id="pics"></div>
 
+<h2>Single Album</h2>
 <div id="pics2"></div>
 
 <p>Created by <a href="http://tobi.oetiker.ch">Tobi Oetiker</a>. Go to the <a href="http://plugins.jquery.com/project/EmbedPicasaGallery">homepage</a> for more information.</p>

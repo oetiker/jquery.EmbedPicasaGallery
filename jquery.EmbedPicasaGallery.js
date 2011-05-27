@@ -30,13 +30,17 @@
   jQuery(document).ready(function() {
   jQuery("#images").EmbedPicasaGallery('oetiker',{
       matcher:            /./,         // string or regexp to match album title
-      size:               '72',        // thumbnail size (32, 48, 64, 72, 144, 160)
+      size:               72,        // thumbnail size (32, 48, 64, 72, 144, 160)
       msg_loading_list :  'Loading album list from PicasaWeb',
-      msg_back :          'Back',
+      msg_back :          'back',
+      msg_more :          'more',
       authkey :           'optional-picasa-authkey',
       albumid :           'go-directly-to-this-album-ignore-matcher',
+      auto_open:          false, //opens the first album
       album_title_tag:    '<h2/>',
+      hide_back:          false, //hide the back button
       thumb_id_prefix:    'pThumb_',
+      show_more:      null,       // show only the first x images when the album gets opened
       loading_animation: 'css/loading.gif',
       thumb_finalizer:    function(){var $a = jQuery(this); ... use this to do something to the anchor AFTER slimbox got there },
       thumb_tuner:        function($div,entry,i){ ... $div is the div of the thumbnail, entry is the picasa image info ...}
@@ -71,12 +75,16 @@
             matcher : RegExp('.+'),
             size    : 72,
             msg_loading_list : 'Loading album list from PicasaWeb',
-            msg_back : 'Back',
+            msg_back : 'back',
+            msg_more : 'more',
             album_title_tag: '<h2/>',
+            auto_open: false,
             thumb_id_prefix: 'pThumb_',
             thumb_tuner: null,
             thumb_finalizer: null,
             loading_animation: null,
+            show_more: null,
+            hide_back: false,
             link_mapper: function(el){
                     return [
                         el.href,
@@ -168,7 +176,7 @@
                 $albums = $album_list.children();
 
 
-                if (albumCount == 1){
+                if (meta_opts.auto_open){
                     $albums.eq(0).click();
                     return;
                 }
@@ -191,7 +199,7 @@
             }
  
     	    if (meta_opts.albumid) {
-       	       showAlbum($this,meta_opts,meta_opts.albumid,'')
+       	       showAlbum($this,meta_opts,meta_opts.albumid)
     	    }
 	        else {
                 $this.prepend($album_list);
@@ -208,6 +216,7 @@
                Cache[album].show();
                return;
             };
+
             var i,$album,albumPics=[],$albumDiv;
 
             $album = $('<div/>').addClass('album');
@@ -216,14 +225,14 @@
                 $album.append($(meta_opts.album_title_tag).text(title))
             }
 
-            function makeDiv(){
+            function makeDiv(){            
                var $div = $('<div/>')
-                   .width(meta_opts.size)
-                   .height(meta_opts.size)
                    .css({
                         'float': 'left',
                         marginRight: '10px',
-                        marginBottom: '10px'
+                        marginBottom: '10px',
+                        width: meta_opts.size+'px',
+                        height: meta_opts.size+'px'
                     });
                if (meta_opts.loading_animation){
                    $div.css('background','url(' + meta_opts.loading_animation + ') no-repeat center center');            
@@ -231,68 +240,100 @@
                return $div;
             }
 
-            if (Cache.__overview){
-                $album.append($("<div/>")
+            function makeButton(text){
+                return $("<div/>")                    
                     .addClass("pic-thumb")
                     .width(meta_opts.size)
                     .height(meta_opts.size)
-                    .css({'border-width': '0px',
+                    .css({borderWidth: '0px',
                          'float' : 'left',
                          marginRight: '10px',
-                         marginBottom: '10px'
+                         marginBottom: '10px',
+                         cursor: 'pointer'
                      })
                     .append($("<div/>")
-                        .html('<br/>'+meta_opts.msg_back)
-                        .click(function(){$album.hide();showOverview()})
-                        .css({'border-style':'outset',
-                              'border-width':'1px',
-                              'text-align'  :'center',
+                        .html('<br/>'+text)
+                        .css({'borderStyle':'outset',
+                              'borderWidth':'1px',
+                              'textAlign'  :'center',
                               'width'       : (meta_opts.size - 2) + 'px',
                               'height'      : (meta_opts.size - 2) + 'px'
                         })
-                    )
-                 );
-             }
+                    );                 
+            }
+
+            if (Cache.__overview && !meta_opts.hide_back){            
+                $album.append(makeButton(meta_opts.msg_back)
+                    .click(function(){$album.hide();showOverview()})
+                );
+            }
+            $this.prepend($album);
             
             if (photoCount){
-                for (i=0;i<photoCount;i++) {
+                for (i=0;i<photoCount && (!meta_opts.show_more || i<meta_opts.show_more);i++) {
                     $albumDiv = makeDiv();
                     $album.append($albumDiv);
                     albumPics.push($albumDiv);
                 }
             }
 
-            function appendImage(i,item){
-               var title, $img, $div, $a;
-               title = item.media$group.media$description.$t || item.media$group.media$title.$t;  
-               $img = $(new Image());
+            function makeImage(i,item){
+               var title = item.media$group.media$description.$t || item.media$group.media$title.$t;  
+               var $div = albumPics[i] || makeDiv();
+
+               var $img = $(new Image());
+               $img.css('borderWidth','0px').hide();
+
+               var $a = $("<a/>")
+                   .attr("href",item.content.src)
+                   .attr("title",title)
+                   .append($img);
+
+               $div
+                   .attr("id", meta_opts.thumb_id_prefix + item.gphoto$id.$t )
+                   .append($a);
+
                $img.load(function(){                   
                     if (meta_opts.thumb_tuner){
                         meta_opts.thumb_tuner($div,item);
                     }
                     $img.show();
-               })
-               .css('border-width','0px')
-               .hide();
-               $a = $("<a/>")
-                   .attr("href",item.content.src)
-                   .attr("title",title)
-                   .append($img);
+               });
 
-               if (($div = albumPics[i]) == undefined){
-                    $div = makeDiv();  
-                    $album.append($div);
+               var thumbs = item.media$group.media$thumbnail;
+               for (var i = 0; i<thumbs.length;i++){
+                    if (thumbs[i].width == meta_opts.size && thumbs[i].height == meta_opts.size){
+                        $img.attr("src", thumbs[i].url);
+                        return $div;
+                    }
                }
-
-               $div
-                   .attr("id", meta_opts.thumb_id_prefix + item.gphoto$id.$t )
-                   .append($a)
-               $img.attr("src", item.media$group.media$thumbnail[0].url);                
+               $img.attr("alt","Sorry, no matching thumbnail found.");
+               return $div; 
             }
 
             function renderAlbum(data){
-                $.each(data.feed.entry,appendImage);
-
+                var images = data.feed.entry;
+                var hiddenImages = [];
+                for (var i=0;i<images.length;i++){
+                    var $div = makeImage(i,images[i]);
+                    if (!meta_opts.show_more || i < meta_opts.show_more){
+                        $div.show();
+                    }
+                    else {
+                        $div.hide();
+                        hiddenImages.push($div);
+                    }
+                    $album.append($div);
+                    if (meta_opts.show_more && i == meta_opts.show_more){
+                        var $moreButton = makeButton(meta_opts.msg_more);
+                        $album.append($moreButton
+                            .click(function(){
+                                hiddenImages.map(function($img){$img.show()});
+                                $moreButton.hide();
+                            })
+                        );                        
+                    }            
+                }
                 if ($.fn.slimbox){
                     $('a',$album).slimbox({},meta_opts.link_mapper);
                 }
@@ -310,7 +351,6 @@
                 + album + '?kind=photo&access=visible' + authkey + '&alt=json-in-script&thumbsize='+meta_opts.size+'c&imgmax=800&callback=?',
                 renderAlbum
             );
-            $this.prepend($album);
         };
 
         return this.each(showOverview);
