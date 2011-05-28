@@ -328,7 +328,10 @@
                         var $moreButton = makeButton(meta_opts.msg_more);
                         $album.append($moreButton
                             .click(function(){
-                                hiddenImages.map(function($img){$img.show()});
+                                var start = 0;
+                                hiddenImages.map(function($img){
+                                    window.setTimeout(function(){$img.show()},50*(start++));
+                                });
                                 $moreButton.hide();
                             })
                         );                        
