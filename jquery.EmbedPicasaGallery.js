@@ -330,7 +330,7 @@
                             .click(function(){
                                 var start = 0;
                                 hiddenImages.map(function($img){
-                                    window.setTimeout(function(){$img.show()},50*(start++));
+                                    window.setTimeout(function(){$img.fadeIn('fast')},50*(start++));
                                 });
                                 $moreButton.hide();
                             })
