@@ -116,7 +116,6 @@
             }
             $this = $(this);
             $this.empty();
-            $this.append($('<br/>').css('clear','left'));
             meta_opts = localOpts;
             if ($.meta){
                 meta_opts = $.extend({}, localOpts, $this.data());
@@ -124,6 +123,8 @@
             albumCount = 0;
             $album_list = $('<div/>')
                 .addClass('album-list')
+                .css('position','relative')
+                .css('overflow','hidden')
                 .append($('<div/>').text(meta_opts.msg_loading_list));
 
 
@@ -217,14 +218,15 @@
                return;
             };
 
-            var i,$album,albumPics=[],$albumDiv;
+            var i,$album,albumPics=[],$picDiv;
 
-            $album = $('<div/>').addClass('album');
-
+            $album = $('<div/>').addClass('album')
+                .css('position','relative')
+                .css('overflow','hidden');
+        
             if (title){
                 $album.append($(meta_opts.album_title_tag).text(title))
             }
-
             function makeDiv(){            
                var $div = $('<div/>')
                    .css({
@@ -271,9 +273,9 @@
             
             if (photoCount){
                 for (i=0;i<photoCount && (!meta_opts.show_more || i<meta_opts.show_more);i++) {
-                    $albumDiv = makeDiv();
-                    $album.append($albumDiv);
-                    albumPics.push($albumDiv);
+                    $picDiv = makeDiv();
+                    $album.append($picDiv);
+                    albumPics.push($picDiv);
                 }
             }
 
@@ -324,6 +326,7 @@
                         hiddenImages.push($div);
                     }
                     $album.append($div);
+
                     if (meta_opts.show_more && i == meta_opts.show_more){
                         var $moreButton = makeButton(meta_opts.msg_more);
                         $album.append($moreButton
