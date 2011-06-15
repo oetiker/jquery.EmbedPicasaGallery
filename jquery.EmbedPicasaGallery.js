@@ -283,33 +283,38 @@
                var title = item.media$group.media$description.$t || item.media$group.media$title.$t;  
                var $div = albumPics[i] || makeDiv();
 
-               var $img = $(new Image());
-               $img.css('borderWidth','0px').hide();
+               var $img = $(new Image())
+               	   .css('borderWidth','0px')
+                   .load(function(){                   
+                       if (meta_opts.thumb_tuner){
+                           meta_opts.thumb_tuner(this,item);
+                       }
+                   });
 
                var $a = $("<a/>")
                    .attr("href",item.content.src)
                    .attr("title",title)
                    .append($img);
 
+
+
+               var thumbs = item.media$group.media$thumbnail;
+	       var gotOne = false;
+               for (var i = 0; i<thumbs.length;i++){
+                    if (thumbs[i].width == meta_opts.size && thumbs[i].height == meta_opts.size){
+                        $img.attr("src", thumbs[i].url);
+			gotOne = true;
+                        break;
+                    }
+               }
+	       if (!gotOne){
+	           $img.attr("alt","Sorry, no matching thumbnail found.");
+	       }
+	          
                $div
                    .attr("id", meta_opts.thumb_id_prefix + item.gphoto$id.$t )
                    .append($a);
 
-               $img.load(function(){                   
-                    if (meta_opts.thumb_tuner){
-                        meta_opts.thumb_tuner($div,item);
-                    }
-                    $img.show();
-               });
-
-               var thumbs = item.media$group.media$thumbnail;
-               for (var i = 0; i<thumbs.length;i++){
-                    if (thumbs[i].width == meta_opts.size && thumbs[i].height == meta_opts.size){
-                        $img.attr("src", thumbs[i].url);
-                        return $div;
-                    }
-               }
-               $img.attr("alt","Sorry, no matching thumbnail found.");
                return $div; 
             }
 
