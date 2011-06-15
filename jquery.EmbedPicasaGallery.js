@@ -332,8 +332,14 @@
                         $album.append($moreButton
                             .click(function(){
                                 var start = 0;
-                                hiddenImages.map(function($img){
-                                    window.setTimeout(function(){$img.fadeIn('fast')},50*(start++));
+                                jQuery.each(hiddenImages,function(i,$img){
+                                    window
+                                        .setTimeout(
+                                            function(){
+                                                $img.fadeIn('fast');
+                                            },
+                                            50*(start++)
+                                        );
                                 });
                                 $moreButton.hide();
                             })
