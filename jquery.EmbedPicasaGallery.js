@@ -43,7 +43,7 @@
       show_more:      null,       // show only the first x images when the album gets opened
       loading_animation: 'css/loading.gif',
       thumb_finalizer:    function(){var $a = jQuery(this); ... use this to do something to the anchor AFTER slimbox got there },
-      thumb_tuner:        function($div,entry,i){ ... $div is the div of the thumbnail, entry is the picasa image info ...}
+      thumb_tuner:        function($img,entry,i){ ... $img is the img of the thumbnail, entry is the picasa image info ...}
       link_mapper: function(el){  // see http://code.google.com/p/slimbox/wiki/jQueryAPI#The_linkMapper_function
             return [
                      el.href,
@@ -283,18 +283,16 @@
                var title = item.media$group.media$description.$t || item.media$group.media$title.$t;  
                var $div = albumPics[i] || makeDiv();
 
-               var $img = $(new Image())
+               var $img = $('<img/>')
                	   .css('borderWidth','0px')
+	           .hide()
                    .load(function(){                   
                        if (meta_opts.thumb_tuner){
                            meta_opts.thumb_tuner(this,item);
                        }
+		       $img.show();
                    });
 
-               var $a = $("<a/>")
-                   .attr("href",item.content.src)
-                   .attr("title",title)
-                   .append($img);
 
 
 
@@ -311,9 +309,15 @@
 	           $img.attr("alt","Sorry, no matching thumbnail found.");
 	       }
 	          
+               var $a = $("<a/>")
+                   .attr("href",item.content.src)
+                   .attr("title",title)
+                   .append($img);
+
                $div
                    .attr("id", meta_opts.thumb_id_prefix + item.gphoto$id.$t )
                    .append($a);
+
 
                return $div; 
             }
