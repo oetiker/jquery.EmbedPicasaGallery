@@ -5,59 +5,8 @@
  * $Id: jquery.EmbedPicasaGallery.js 474 2011-06-16 09:02:45Z oetiker $
  **************************************************************************
  Description:
-
- This little script asks picasa web for a list of albums and for a list
- of pictures in the album. It then emits a series of <div class="pic-thumb"/>
- elements containing thumbnail images. The divs are inserted inside the element
- marked with a particular id. Clicking on an album will display thumbnails of the
- images in the album and clicking on a thumbnail will show the image itself
- using slimbox.
-
- The script itself uses jQuery (http://www.jquery.org) and slimbox2
- (http://www.digitalia.be/software/slimbox2) to work. So you have to load
- these two guys before loading the gallery script. You can load them in the
- header or the body of the document, this does not matter.
-
-  <script type="text/javascript" src="js/jquery.js"></script>
-  <link rel="stylesheet" href="css/slimbox2.css" type="text/css" media="screen" />
-  <script type="text/javascript" src="slimbox2.js"></script>
-  <script type="text/javascript" src="js/jquery.EmbedPicasaGallery.js"></script>
-
- Once loaded, call the picasaGallery function. This activates the
- code. With the id argument you tell it, where to put the gallery.
-
-  <script type="text/javascript">
-  jQuery(document).ready(function() {
-  jQuery("#images").EmbedPicasaGallery('oetiker',{
-      matcher:            /./,         // string or regexp to match album title
-      size:               72,        // thumbnail size (32, 48, 64, 72, 144, 160)
-      msg_loading_list :  'Loading album list from PicasaWeb',
-      msg_back :          'back',
-      msg_more :          'more',
-      authkey :           'optional-picasa-authkey',
-      albumid :           'go-directly-to-this-album-ignore-matcher',
-      auto_open:          false, //opens the first album
-      album_title_tag:    '<h2/>',
-      hide_back:          false, //hide the back button
-      thumb_id_prefix:    'pThumb_',
-      show_more:      null,       // show only the first x images when the album gets opened
-      loading_animation: 'css/loading.gif',
-      thumb_finalizer:    function(){var $a = jQuery(this); ... use this to do something to the anchor AFTER slimbox got there },
-      thumb_tuner:        function($img,entry,i){ ... $img is the img of the thumbnail, entry is the picasa image info ...}
-      link_mapper: function(el){  // see http://code.google.com/p/slimbox/wiki/jQueryAPI#The_linkMapper_function
-            return [
-                     el.href,
-                     '<a href="'+el.href+'">'+el.title+'</a>'
-                   ]
-            }
-   });
-  });
-  </script>
-
- Finally inside the document, add a div tag with the id set to the name
- chosen above.
-
- <div id="images"></div>
+ 
+ [elided]
 
 **********************************************************************************/
 
