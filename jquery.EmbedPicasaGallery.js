@@ -2,7 +2,6 @@
  * Name:   EmbedPicasaGallery
  * Author: Tobias Oetiker <tobi@oetiker.ch>
  * Demo:   http://tobi.oetiker.ch/photo/
-<<<<<<< HEAD
  * $Id$
  **************************************************************************
  Description:
@@ -323,6 +322,9 @@
                $img.show();
                    });
 
+
+
+
                var thumbs = item.media$group.media$thumbnail;
            var gotOne = false;
                for (var i = 0; i<thumbs.length;i++){
@@ -353,7 +355,8 @@
                 var images = data.feed.entry;
                 var hiddenImages = [];
                 for (var i=0;i<images.length;i++){
-                    var $div = makeImage(i,images[i]);
+                    var image = images[i]
+                    var $div = makeImage(i,image);
                     if (!meta_opts.show_more || i < meta_opts.show_more){
                         $div.show();
                     }
@@ -362,7 +365,32 @@
                         hiddenImages.push($div);
                     }
                     $album.append($div);
-
+                    if ($.fn.dialog){
+                        console.log('jquery ui dialog worksinzg')
+                        console.log(images[i])
+                        $div.bind('click',function(event){
+                            event.preventDefault()
+                            var $dialog = $('<div>')
+                                .attr('title',image.title.$t)
+                                .addClass('dialog')
+                                .prependTo('body')
+                            $('<img>')
+                                .attr('src',image.content.src)
+                                .appendTo($dialog)
+                                .bind('load', function(){
+                                    $dialog.dialog({
+                                        autoOpen: true,
+                                        width:'auto',
+                                        resizable: false,
+                                        draggable: false,
+                                        modal: true,
+                                        close: function(ev,ui){
+                                            $(this).remove()
+                                        }
+                                    })
+                                })
+                        })
+                    }
                     if (meta_opts.show_more && i == meta_opts.show_more){
                         var $moreButton = makeButton(meta_opts.msg_more);
                         $album.append($moreButton
