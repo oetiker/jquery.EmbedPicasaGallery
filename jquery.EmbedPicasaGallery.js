@@ -6,19 +6,19 @@
  * $Id$
  **************************************************************************
  Description:
- 
+
  This little script asks picasa web for a list of albums and for a list
  of pictures in the album. It then emits a series of <div class="pic-thumb"/>
  elements containing thumbnail images. The divs are inserted inside the element
  marked with a particular id. Clicking on an album will display thumbnails of the
  images in the album and clicking on a thumbnail will show the image itself
  using slimbox.
- 
+
  The script itself uses jQuery (http://www.jquery.org) and slimbox2
  (http://www.digitalia.be/software/slimbox2) to work. So you have to load
  these two guys before loading the gallery script. You can load them in the
  header or the body of the document, this does not matter.
- 
+
   <script type="text/javascript" src="js/jquery.js"></script>
   <link rel="stylesheet" href="css/slimbox2.css" type="text/css" media="screen" />
   <script type="text/javascript" src="slimbox2.js"></script>
@@ -57,7 +57,7 @@
 
  Finally inside the document, add a div tag with the id set to the name
  chosen above.
- 
+
  <div id="images"></div>
 
 **********************************************************************************/
@@ -189,11 +189,11 @@
             function renderAlbumList(data){
                 var $albums,maxHeight=0;
                 $album_list.empty();
-        		if (data.feed && data.feed.entry){
-    	            $.each(data.feed.entry,appendImage);
-        		} else {
-          		    $this.text('Warning: No picasa albums found for user ' + user);
-		        }
+                if (data.feed && data.feed.entry){
+                    $.each(data.feed.entry,appendImage);
+                } else {
+                    $this.text('Warning: No picasa albums found for user ' + user);
+                }
                 Cache.__overview = $album_list;
                 $albums = $album_list.children();
 
@@ -220,10 +220,10 @@
                 authkey = '&authkey=' + meta_opts.authkey;
             }
 
-    	    if (meta_opts.albumid) {
-       	       showAlbum($this,meta_opts,meta_opts.albumid)
-    	    }
-	        else {
+            if (meta_opts.albumid) {
+               showAlbum($this,meta_opts,meta_opts.albumid)
+            }
+            else {
                 $this.prepend($album_list);
                 $.getJSON('http://picasaweb.google.com/data/feed/api/user/'
                     + user + '?kind=album&access=visible' + authkey
@@ -314,30 +314,27 @@
                var $div = albumPics[i] || makeDiv();
 
                var $img = $('<img/>')
-               	   .css('borderWidth','0px')
-	           .hide()
+                   .css('borderWidth','0px')
+               .hide()
                    .load(function(){
                        if (meta_opts.thumb_tuner){
                            meta_opts.thumb_tuner(this,item);
                        }
-		       $img.show();
+               $img.show();
                    });
 
-
-
-
                var thumbs = item.media$group.media$thumbnail;
-	       var gotOne = false;
+           var gotOne = false;
                for (var i = 0; i<thumbs.length;i++){
                     if (thumbs[i].width == meta_opts.size && thumbs[i].height == meta_opts.size){
                         $img.attr("src", thumbs[i].url);
-			gotOne = true;
+            gotOne = true;
                         break;
                     }
                }
-	       if (!gotOne){
-	           $img.attr("alt","Sorry, no matching thumbnail found.");
-	       }
+           if (!gotOne){
+               $img.attr("alt","Sorry, no matching thumbnail found.");
+           }
 
                var $a = $("<a/>")
                    .attr("href",item.content.src)
