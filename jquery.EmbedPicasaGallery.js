@@ -5,19 +5,19 @@
  * $Id$
  **************************************************************************
  Description:
- 
+
  This little script asks picasa web for a list of albums and for a list
  of pictures in the album. It then emits a series of <div class="pic-thumb"/>
  elements containing thumbnail images. The divs are inserted inside the element
  marked with a particular id. Clicking on an album will display thumbnails of the
  images in the album and clicking on a thumbnail will show the image itself
  using slimbox.
- 
+
  The script itself uses jQuery (http://www.jquery.org) and slimbox2
  (http://www.digitalia.be/software/slimbox2) to work. So you have to load
  these two guys before loading the gallery script. You can load them in the
  header or the body of the document, this does not matter.
- 
+
   <script type="text/javascript" src="js/jquery.js"></script>
   <link rel="stylesheet" href="css/slimbox2.css" type="text/css" media="screen" />
   <script type="text/javascript" src="slimbox2.js"></script>
@@ -56,7 +56,7 @@
 
  Finally inside the document, add a div tag with the id set to the name
  chosen above.
- 
+
  <div id="images"></div>
 
 **********************************************************************************/
@@ -91,17 +91,25 @@
                         '<a href="'+el.href+'">'+el.title+'</a>'
                     ]
                 }
-        } 
+        }
     };
     $.fn[nsp] = function(user,opts) {
         var localOpts,
             Cache = {};
 
-        localOpts = $.extend( 
+        localOpts = $.extend(
             {}, // start with an empty map
             $[nsp].defaultOptions, // add defaults
             opts // add options
         );
+
+        function callbackWithInfo(opts,callback,idx,info) {
+            if (opts[callback] &&
+                $.isArray(opts[callback]) &&
+                $.isFunction(opts[callback][idx])) {
+              opts[callback][idx](info);
+            }
+        }
 
         function showOverview() {
             var $this,
@@ -129,8 +137,9 @@
 
 
             function appendImage(i,item){
-                var title,$div,$img;
+                var title,$div,$img,desc;
                 title = item.media$group.media$title.$t;
+                desc = item.media$group.media$description.$t;
                 if (title.match(meta_opts.matcher)){
                     albumCount++;
                     $img = $('<img/>')
@@ -145,11 +154,22 @@
                         })
                         .click(function () {
                            $album_list.hide();
-                           showAlbum($this,meta_opts,item.gphoto$id.$t,title,item.gphoto$numphotos.$t);
+                           showAlbum($this,meta_opts,item.gphoto$id.$t,title,item.gphoto$numphotos.$t,desc);
                         })
                         .hover(
-                            function () { $(this).css("cursor","pointer")},
-                            function () { $(this).css("cursor","default")}
+                            function () {
+                                $(this).css("cursor","pointer");
+                                callbackWithInfo(meta_opts,'album_hover',0, {
+                                    title: title,
+                                    photoCount: item.gphoto$numphotos.$t,
+                                    description: desc
+                                });
+                                $(this).css("cursor","pointer")
+                            },
+                            function () {
+                                $(this).css("cursor","default");
+                                callbackWithInfo(meta_opts,'album_hover',1,{});
+                            }
                         )
                         .append( $img )
                         .append(
@@ -160,19 +180,19 @@
                             })
                             .text(title)
                             .width( meta_opts.size )
-                        )                    
+                        )
                     $album_list.append($div);
                 };
             }
-            
+
             function renderAlbumList(data){
                 var $albums,maxHeight=0;
                 $album_list.empty();
-        		if (data.feed && data.feed.entry){
-    	            $.each(data.feed.entry,appendImage);
-        		} else {
-          		    $this.text('Warning: No picasa albums found for user ' + user);
-		        }
+                if (data.feed && data.feed.entry){
+                    $.each(data.feed.entry,appendImage);
+                } else {
+                    $this.text('Warning: No picasa albums found for user ' + user);
+                }
                 Cache.__overview = $album_list;
                 $albums = $album_list.children();
 
@@ -182,7 +202,7 @@
                     return;
                 }
                 $('.album-title',$album_list)
-                .each(function(){                        
+                .each(function(){
                      var h = $(this).outerHeight();
                      if (h > maxHeight){
                         maxHeight = h
@@ -198,21 +218,27 @@
             if (meta_opts.authkey){
                 authkey = '&authkey=' + meta_opts.authkey;
             }
- 
-    	    if (meta_opts.albumid) {
-       	       showAlbum($this,meta_opts,meta_opts.albumid)
-    	    }
-	        else {
+
+            if (meta_opts.albumid) {
+               showAlbum($this,meta_opts,meta_opts.albumid)
+            }
+            else {
                 $this.prepend($album_list);
-                $.getJSON('http://picasaweb.google.com/data/feed/api/user/' 
-                    + user + '?kind=album&access=visible' + authkey 
+                $.getJSON('http://picasaweb.google.com/data/feed/api/user/'
+                    + user + '?kind=album&access=visible' + authkey
                     + '&alt=json-in-script&thumbsize=' + meta_opts.size + 'c&callback=?',
                     renderAlbumList
                );
-	        }
+            }
         };
 
-        function showAlbum($this,meta_opts,album,title,photoCount){                        
+        function showAlbum($this,meta_opts,album,title,photoCount,desc){
+            callbackWithInfo(meta_opts,'album_toggle',0,{
+                title: title,
+                photoCount: photoCount,
+                description: desc
+            });
+
             if ( Cache[album] ){
                Cache[album].show();
                return;
@@ -223,11 +249,11 @@
             $album = $('<div/>').addClass('album')
                 .css('position','relative')
                 .css('overflow','hidden');
-        
+
             if (title){
                 $album.append($(meta_opts.album_title_tag).text(title))
             }
-            function makeDiv(){            
+            function makeDiv(){
                var $div = $('<div/>')
                    .css({
                         'float': 'left',
@@ -237,13 +263,13 @@
                         height: meta_opts.size+'px'
                     });
                if (meta_opts.loading_animation){
-                   $div.css('background','url(' + meta_opts.loading_animation + ') no-repeat center center');            
+                   $div.css('background','url(' + meta_opts.loading_animation + ') no-repeat center center');
                }
                return $div;
             }
 
             function makeButton(text){
-                return $("<div/>")                    
+                return $("<div/>")
                     .addClass("pic-thumb")
                     .width(meta_opts.size)
                     .height(meta_opts.size)
@@ -261,16 +287,19 @@
                               'width'       : (meta_opts.size - 2) + 'px',
                               'height'      : (meta_opts.size - 2) + 'px'
                         })
-                    );                 
+                    );
             }
 
-            if (Cache.__overview && !meta_opts.hide_back){            
+            if (Cache.__overview && !meta_opts.hide_back){
                 $album.append(makeButton(meta_opts.msg_back)
-                    .click(function(){$album.hide();showOverview()})
+                    .click(function(){
+                        callbackWithInfo(meta_opts,'album_toggle',1,{});
+                        $album.hide();
+                        showOverview()})
                 );
             }
             $this.prepend($album);
-            
+
             if (photoCount){
                 for (i=0;i<photoCount && (!meta_opts.show_more || i<meta_opts.show_more);i++) {
                     $picDiv = makeDiv();
@@ -280,35 +309,35 @@
             }
 
             function makeImage(i,item){
-               var title = item.media$group.media$description.$t || item.media$group.media$title.$t;  
+               var title = item.media$group.media$description.$t || item.media$group.media$title.$t;
                var $div = albumPics[i] || makeDiv();
 
                var $img = $('<img/>')
-               	   .css('borderWidth','0px')
-	           .hide()
-                   .load(function(){                   
+                   .css('borderWidth','0px')
+               .hide()
+                   .load(function(){
                        if (meta_opts.thumb_tuner){
                            meta_opts.thumb_tuner(this,item);
                        }
-		       $img.show();
+               $img.show();
                    });
 
 
 
 
                var thumbs = item.media$group.media$thumbnail;
-	       var gotOne = false;
+           var gotOne = false;
                for (var i = 0; i<thumbs.length;i++){
                     if (thumbs[i].width == meta_opts.size && thumbs[i].height == meta_opts.size){
                         $img.attr("src", thumbs[i].url);
-			gotOne = true;
+            gotOne = true;
                         break;
                     }
                }
-	       if (!gotOne){
-	           $img.attr("alt","Sorry, no matching thumbnail found.");
-	       }
-	          
+           if (!gotOne){
+               $img.attr("alt","Sorry, no matching thumbnail found.");
+           }
+
                var $a = $("<a/>")
                    .attr("href",item.content.src)
                    .attr("title",title)
@@ -319,14 +348,15 @@
                    .append($a);
 
 
-               return $div; 
+               return $div;
             }
 
             function renderAlbum(data){
                 var images = data.feed.entry;
                 var hiddenImages = [];
                 for (var i=0;i<images.length;i++){
-                    var $div = makeImage(i,images[i]);
+                    var image = images[i]
+                    var $div = makeImage(i,image);
                     if (!meta_opts.show_more || i < meta_opts.show_more){
                         $div.show();
                     }
@@ -335,7 +365,32 @@
                         hiddenImages.push($div);
                     }
                     $album.append($div);
-
+                    if ($.fn.dialog){
+                        console.log('jquery ui dialog worksinzg')
+                        console.log(images[i])
+                        $div.bind('click',function(event){
+                            event.preventDefault()
+                            var $dialog = $('<div>')
+                                .attr('title',image.title.$t)
+                                .addClass('dialog')
+                                .prependTo('body')
+                            $('<img>')
+                                .attr('src',image.content.src)
+                                .appendTo($dialog)
+                                .bind('load', function(){
+                                    $dialog.dialog({
+                                        autoOpen: true,
+                                        width:'auto',
+                                        resizable: false,
+                                        draggable: false,
+                                        modal: true,
+                                        close: function(ev,ui){
+                                            $(this).remove()
+                                        }
+                                    })
+                                })
+                        })
+                    }
                     if (meta_opts.show_more && i == meta_opts.show_more){
                         var $moreButton = makeButton(meta_opts.msg_more);
                         $album.append($moreButton
@@ -352,8 +407,8 @@
                                 });
                                 $moreButton.hide();
                             })
-                        );                        
-                    }            
+                        );
+                    }
                 }
                 if ($.fn.slimbox){
                     $('a',$album).slimbox({},meta_opts.link_mapper);
@@ -367,8 +422,8 @@
             if (meta_opts.authkey){
                authkey = '&authkey=' + meta_opts.authkey;
             }
-            $.getJSON('http://picasaweb.google.com/data/feed/api/user/' 
-                + user + '/albumid/' 
+            $.getJSON('http://picasaweb.google.com/data/feed/api/user/'
+                + user + '/albumid/'
                 + album + '?kind=photo&access=visible' + authkey + '&alt=json-in-script&thumbsize='+meta_opts.size+'c&imgmax=800&callback=?',
                 renderAlbum
             );
@@ -377,4 +432,3 @@
         return this.each(showOverview);
     };
 })(jQuery);
-
