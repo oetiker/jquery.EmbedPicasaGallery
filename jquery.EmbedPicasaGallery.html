@@ -1,24 +1,23 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>Demo Page for EmbedPicasaGallery by Tobi Oetiker</title>
-<script type="text/javascript" src="jquery-1.6.1.min.js"></script>
+<title>Demo Page for EmbedPicasaGallery by Tobi Oetiker et al</title>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <link rel="stylesheet" href="css/slimbox2.css" type="text/css" media="screen" />
-<script type="text/javascript" src="slimbox2.js"></script>
+<script type="text/javascript" src="js/slimbox2.js"></script>
 <script type="text/javascript" src="jquery.EmbedPicasaGallery.js"></script>
 <script type="text/javascript">
 jQuery(document).ready(function() {
- jQuery("#pics").EmbedPicasaGallery('oetiker',{
-    matcher: /Best/,
-//  auto_open: true,
+
+ jQuery("#pics").EmbedPicasaGallery('104542520560674774948',{
+  auto_open: true,
 //  hide_back: true,
-//  show_more: 5,
+  show_more: 5,
     loading_animation: 'css/loading.gif',
     album_title_tag:    '<h3/>'
  });
 
- jQuery("#pics2").EmbedPicasaGallery('oetiker',{
-  albumid: "5484803453430469713",
+ jQuery(".pics").EmbedPicasaGallery('104542520560674774948',{
   size: 144, // thumb size (32,48,64,72,144,160))
   loading_animation: "http://oss.oetiker.ch/jquery/css/loading.gif",
   msg_more: 'show<br/>more',
@@ -32,8 +31,9 @@ jQuery(document).ready(function() {
 <h2>Multiple Albums</h2>
 <div id="pics"></div>
 
-<h2>Single Album</h2>
-<div id="pics2"></div>
+<h2>Single Albums</h2>
+<div class="pics" data-albumid='5825624560599371633'></div>
+<div class="pics" data-albumid='5825624560599371633'></div>
 
 <p>Created by <a href="http://tobi.oetiker.ch">Tobi Oetiker</a>. Go to the <a href="http://plugins.jquery.com/project/EmbedPicasaGallery">homepage</a> for more information.</p>
 </body>
