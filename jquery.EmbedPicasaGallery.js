@@ -41,6 +41,7 @@
       albumid :           'go-directly-to-this-album-ignore-matcher',  //or use data-albumid='id' on the element you ran this plugin on
       auto_open:          false, //opens the first album
       album_title_tag:    '<h2/>',
+      album_subtitle_tag: '<div class='subtitle'></div>',
       hide_back:          false, //hide the back button
       thumb_id_prefix:    'pThumb_',
       show_more:      null,       // show only the first x images when the album gets opened
@@ -81,6 +82,7 @@
             msg_back : 'back',
             msg_more : 'more',
             album_title_tag: '<h2/>',
+            album_subtitle_tag: '<div class="subtitle"></div>',
             auto_open: false,
             thumb_id_prefix: 'pThumb_',
             thumb_tuner: null,
@@ -335,7 +337,7 @@
                     $album.append($(meta_opts.album_title_tag).text(data.feed.title.$t));
                 }
                 if (meta_opts.album_subtitle && data.feed.subtitle.$t) {
-                    $album.append("<div class='subtitle'>" + data.feed.subtitle.$t + "</div>");
+                    $album.append($(meta_opts.album_subtitle_tag).text(data.feed.subtitle.$t));
                 }
                 for (var i=0;i<images.length;i++){
                     var $div = makeImage(i,images[i]);
